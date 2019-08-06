@@ -1,0 +1,5 @@
+project-id            = "your-gcp-project-id"
+service-account-creds = "path-to-your-sa-creds.json"
+service-account-email = "your-service-account@google-assigned-email.com"
+ssh-creds             = { you = "path-to-your/id_rsa.pub" }
+

@@ -1,0 +1,38 @@
+#!/bin/bash
+set -eu
+
+if [[ ! -f properties.yml ]]; then
+  echo >&2 "First, you must run \`make' to Terraform AWS"
+  exit 1
+fi
+
+project_id=$(      cat properties.yml | spruce json | jq -r '.meta.tf.project_id')
+network_name=$(    cat properties.yml | spruce json | jq -r '.meta.tf.network_name')
+subnetwork_name=$( cat properties.yml | spruce json | jq -r '.meta.tf.subnetwork_name')
+network_range=$(   cat properties.yml | spruce json | jq -r '.meta.tf.network_range')
+default_gateway=$( cat properties.yml | spruce json | jq -r '.meta.tf.default_gateway')
+avail_zone=$(      cat properties.yml | spruce json | jq -r '.meta.tf.avail_zone')
+ssh_user=$(        cat properties.yml | spruce json | jq -r '.meta.tf.ssh_user')
+ssh_key=$(         cat properties.yml | spruce json | jq -r '.meta.tf.ssh_key')
+sa_creds=$(        cat properties.yml | spruce json | jq -r '.meta.tf.sa_creds')
+bastion_host_ip=$( cat properties.yml | spruce json | jq -r '.meta.tf.bastion_host_ip')
+
+echo
+echo "For configuring your proto-BOSH:"
+echo
+echo "  Static IP:             10.0.0.3"
+echo "  Range (CIDR):          $network_range"
+echo "  Gateway:               $default_gateway"
+echo "  DNS:                   8.8.8.8, 8.8.4.4"
+echo
+echo "  GCP Project ID:        $project_id"
+echo "  Service account Creds: $sa_creds"
+echo "  Network Name:          $network_name"
+echo "  Subnet Name:           $subnetwork_name"
+echo "  Availability Zone:     $avail_zone"
+echo
+echo "To access the bastion host:"
+echo
+echo "  ssh -i $ssh_key $ssh_user@$bastion_host_ip"
+echo
+exit 0
