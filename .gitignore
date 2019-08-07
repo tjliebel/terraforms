@@ -4,3 +4,4 @@
 *.tfstate*
 *.tfplan
 properties.yml
+lab/gcp/keys

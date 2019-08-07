@@ -31,10 +31,16 @@ variable "service_account_email" {
   description = "Email of the GCP service account"
 }
 
-variable "ssh_creds" {
+variable "ssh_creds_pub" {
   type = "map"
-  description = "ssh users and keys formated as such (including the braces):  { 'user1 = \"path_to_key1\", user2 = \"path_to_key2\",  user3 = \"path_to_key3\" }"
+  description = "ssh users and public keys formated as such (including the braces):  { 'user1 = \"path_to_pub_key1\", user2 = \"path_to_pub_key2\",  user3 = \"path_to_pub_key3\" }"
 }
+
+variable "ssh_creds_priv" {
+  type = "map"
+  description = "ssh users and private keys formated as such (including the braces):  { 'user1 = \"path_to_priv_key1\", user2 = \"path_to_priv_key2\",  user3 = \"path_to_priv_key3\" }"
+}
+
 
 provider "google" {
   credentials = "${file(var.service_account_credentials)}"
@@ -124,14 +130,47 @@ resource "google_compute_instance" "bastion-vm" {
 
   metadata = {
     ssh-keys = join("", [
-      for key in keys(var.ssh_creds): 
-      "${key}:${file(lookup(var.ssh_creds, key))}"
+      for key in keys(var.ssh_creds_pub): 
+      "${key}:${file(lookup(var.ssh_creds_pub, key))}"
     ])
   }
 
   service_account {
     email   = "${var.service_account_email}"
     scopes  = ["cloud-platform"]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo curl -o /usr/local/bin/jumpbox https://raw.githubusercontent.com/starkandwayne/jumpbox/master/bin/jumpbox",
+      "sudo chmod 0755 /usr/local/bin/jumpbox",
+    ]
+    connection {
+      type = "ssh"
+      host = "${google_compute_instance.bastion-vm.network_interface[0].access_config[0].nat_ip}"
+      user = "${keys(var.ssh_creds_priv)[0]}"
+      private_key = "${file(lookup(var.ssh_creds_priv, keys(var.ssh_creds_priv)[0]))}"
+    }
+  }
+  provisioner "file" {
+    source      = "files/gitconfig"
+    destination = "/home/${keys(var.ssh_creds_priv)[0]}/.gitconfig"
+    connection {
+      type = "ssh"
+      host = "${google_compute_instance.bastion-vm.network_interface[0].access_config[0].nat_ip}"
+      user = "${keys(var.ssh_creds_priv)[0]}"
+      private_key = "${file(lookup(var.ssh_creds_priv, keys(var.ssh_creds_priv)[0]))}"
+    }
+  }
+  provisioner "file" {
+    source      = "files/tmux.conf"
+    destination = "/home/${keys(var.ssh_creds_priv)[0]}/.tmux.conf"
+    connection {
+      type = "ssh"
+      host = "${google_compute_instance.bastion-vm.network_interface[0].access_config[0].nat_ip}"
+      user = "${keys(var.ssh_creds_priv)[0]}"
+      private_key = "${file(lookup(var.ssh_creds_priv, keys(var.ssh_creds_priv)[0]))}"
+    }
   }
 }
 
@@ -145,5 +184,5 @@ output "subnetwork_name" { value = "${google_compute_subnetwork. genesis-bosh-su
 output "avail_zone"      { value = "${google_compute_instance.bastion-vm.zone}" }
 
 output "bastion_host_ip" { value = "${google_compute_instance.bastion-vm.network_interface[0].access_config[0].nat_ip}" }
-output "ssh_user"        { value = "${keys(var.ssh_creds)[0]}" }
-output "ssh_key"         { value = "${var.ssh_creds[keys(var.ssh_creds)[0]]}" }
+output "ssh_user"        { value = "${keys(var.ssh_creds_pub)[0]}" }
+output "ssh_pub_key"     { value = "${var.ssh_creds_pub[keys(var.ssh_creds_pub)[0]]}" }
