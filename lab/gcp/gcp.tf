@@ -33,12 +33,12 @@ variable "service_account_email" {
 
 variable "ssh_creds_pub" {
   type = "map"
-  description = "ssh users and public keys formated as such (including the braces):  { 'user1 = \"path_to_pub_key1\", user2 = \"path_to_pub_key2\",  user3 = \"path_to_pub_key3\" }"
+  description = "ssh users and public keys formated as such (including the braces):  { bastion-user = \"~/id_rsa.pub\" }"
 }
 
 variable "ssh_creds_priv" {
   type = "map"
-  description = "ssh users and private keys formated as such (including the braces):  { 'user1 = \"path_to_priv_key1\", user2 = \"path_to_priv_key2\",  user3 = \"path_to_priv_key3\" }"
+  description = "ssh users and private keys formated as such (including the braces):  { bastion-user = \"~/id_rsa\" }"
 }
 
 

@@ -1,6 +1,6 @@
 project_id                  = "your-gcp-project-id"
 service_account_credentials = "path-to-your-sa-creds.json"
 service_account_email       = "your-service-account@google-assigned-email.com"
-ssh_creds_pub               = { you = "path-to-your/id_rsa.pub" }
-ssh_creds_priv              = { you = "path-to-your/id_rsa" }
+ssh_creds_pub               = { bastion-user = "~/id_rsa.pub" }
+ssh_creds_priv              = { bastion-user = "~/id_rsa" }
 
