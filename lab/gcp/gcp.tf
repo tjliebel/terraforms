@@ -60,6 +60,20 @@ resource "google_compute_subnetwork" "genesis-bosh-subnetwork" {
   private_ip_google_access = true
 }
 
+resource "google_compute_router" "genesis-bosh-router" {
+  name          = "genesis-bosh-router"
+  network       = "${google_compute_network.genesis-bosh-network.self_link}"
+  region        = "${var.region}"
+}
+
+resource "google_compute_router_nat" "genesis-bosh-nat" {
+  name          = "genesis-bosh-nat"
+  router        = "${google_compute_router.genesis-bosh-router.name}"
+  region        = "${var.region}"
+  nat_ip_allocate_option = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+}
+
 resource "google_compute_firewall" "outbound-internet" {
   name          = "outbound-internet"
   network       = "${google_compute_network.genesis-bosh-network.self_link}"
@@ -177,11 +191,12 @@ resource "google_compute_instance" "bastion-vm" {
 output "project_id"      { value = "${var.project_id}" }
 output "sa_creds"        { value = "${var.service_account_credentials}" }
 
-output "network_range"   { value = "${google_compute_subnetwork.genesis-bosh-subnetwork.ip_cidr_range}" }
-output "default_gateway" { value = "${google_compute_subnetwork.genesis-bosh-subnetwork.gateway_address}" }
 output "network_name"    { value = "${google_compute_network.genesis-bosh-network.name}" }
 output "subnetwork_name" { value = "${google_compute_subnetwork. genesis-bosh-subnetwork.name}" }
+output "network_range"   { value = "${google_compute_subnetwork.genesis-bosh-subnetwork.ip_cidr_range}" }
+output "default_gateway" { value = "${google_compute_subnetwork.genesis-bosh-subnetwork.gateway_address}" }
 output "avail_zone"      { value = "${google_compute_instance.bastion-vm.zone}" }
+output "dns"             { value = "169.254.169.254" }
 
 output "bastion_host_ip" { value = "${google_compute_instance.bastion-vm.network_interface[0].access_config[0].nat_ip}" }
 output "ssh_user"        { value = "${keys(var.ssh_creds_pub)[0]}" }

@@ -11,8 +11,8 @@ networks:
   - name: vault
     type: manual
     subnets:
-      - range:   (( grab meta.net.lab.cidr ))
-        gateway: (( grab meta.net.lab.gw ))
+      - range:   (( grab meta.tf.network_range ))
+        gateway: (( grab meta.tf.default_gateway ))
         dns:     [(( grab meta.tf.cc.dns ))]
         azs:     [z1]
         reserved:
@@ -26,8 +26,8 @@ networks:
   - name: default
     type: manual
     subnets:
-      - range:   (( grab meta.net.lab.cidr ))
-        gateway: (( grab meta.net.lab.gw ))
+      - range:   (( grab meta.tf.network_range ))
+        gateway: (( grab meta.tf.default_gateway ))
         dns:     [(( grab meta.tf.cc.dns ))]
         azs:     [z1]
         reserved:
@@ -35,7 +35,7 @@ networks:
         static:
           - (( concat meta.net.lab.prefix ".128 - " meta.net.lab.prefix  ".191" ))
         cloud_properties:
-          subnet: (( grab meta.net.lab.subnet ))
+          subnet: (( grab meta.tf.subnetwork_name ))
 
 compilation:
   az: z1
