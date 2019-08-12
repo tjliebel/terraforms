@@ -1,11 +1,7 @@
-meta:
-  net:
-    lab: (( grab meta.tf.aws.network.lab ))
-
 azs:
   - name: z1
     cloud_properties:
-      availability_zone: (( grab meta.tf.cc.z1 ))
+      zone: (( grab meta.tf.avail_zone ))
 
 networks:
   - name: vault
@@ -13,29 +9,31 @@ networks:
     subnets:
       - range:   (( grab meta.tf.network_range ))
         gateway: (( grab meta.tf.default_gateway ))
-        dns:     [(( grab meta.tf.cc.dns ))]
+        dns:     [(( grab meta.tf.dns ))]
         azs:     [z1]
         reserved:
-          - (( concat meta.net.lab.prefix ".2 - " meta.net.lab.prefix ".4" ))
-          - (( concat meta.net.lab.prefix ".8 - " meta.net.lab.prefix ".254" ))
+          - (( concat meta.tf.network_prefix ".2 - " meta.tf.network_prefix ".3" ))
+          - (( concat meta.tf.network_prefix ".7 - " meta.tf.network_prefix ".254" ))
         static:
-          - (( concat meta.net.lab.prefix ".5 - " meta.net.lab.prefix ".7" ))
+          - (( concat meta.tf.network_prefix ".4 - " meta.tf.network_prefix ".6" ))
         cloud_properties:
-          subnet: (( grab meta.net.lab.subnet ))
+          network_name:    (( grab meta.tf.network_name ))
+          subnetwork_name: (( grab meta.tf.subnetwork_name ))
 
   - name: default
     type: manual
     subnets:
       - range:   (( grab meta.tf.network_range ))
         gateway: (( grab meta.tf.default_gateway ))
-        dns:     [(( grab meta.tf.cc.dns ))]
+        dns:     [(( grab meta.tf.dns ))]
         azs:     [z1]
         reserved:
-          - (( concat meta.net.lab.prefix ".2 - " meta.net.lab.prefix ".127" ))
+          - (( concat meta.tf.network_prefix ".2 - " meta.tf.network_prefix ".127" ))
         static:
-          - (( concat meta.net.lab.prefix ".128 - " meta.net.lab.prefix  ".191" ))
+          - (( concat meta.tf.network_prefix ".128 - " meta.tf.network_prefix  ".191" ))
         cloud_properties:
-          subnet: (( grab meta.tf.subnetwork_name ))
+          network_name:    (( grab meta.tf.network_name ))
+          subnetwork_name: (( grab meta.tf.subnetwork_name ))
 
 compilation:
   az: z1
@@ -48,30 +46,18 @@ disk_types:
   - name: default
     disk_size: 8192
     cloud_properties:
-      type: gp2
+      type: pd-standard
 
 vm_types:
   - name: default
     cloud_properties:
-      instance_type: t2.small
-      ephemeral_disk:
-        type: gp2
-        size: 8192
+      machine_type: n1-standard-2
   - name: small
     cloud_properties:
-      instance_type: t2.small
-      ephemeral_disk:
-        type: gp2
-        size: 4096
+      machine_type: n1-standard-1
   - name: medium
     cloud_properties:
-      instance_type: t2.medium
-      ephemeral_disk:
-        type: gp2
-        size: 16384
+      machine_type: n1-standard-4
   - name: large
     cloud_properties:
-      instance_type: t2.large
-      ephemeral_disk:
-        type: gp2
-        size: 32767
+      machine_type: n1-standard-8

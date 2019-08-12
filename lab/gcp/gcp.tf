@@ -20,10 +20,16 @@ variable "zone" {
   default = "us-east4-a"
 }
 
+variable "network_prefix" {
+  type = "string"
+  description = "First three octets of the local network /24, ie. `10.0.0`"
+  default = "10.0.0"
+}
+
 variable "subnet_cidr" {
   type = "string"
-  description = "IP range of the subnet in CIDR, ie. 10.0.0.0/24"
-  default = "10.0.0.0/24"
+  description = "IP range of the subnet in CIDR, ie. `/24`"
+  default = "/24"
 }
 
 variable "service_account_email" {
@@ -54,7 +60,7 @@ resource "google_compute_network" "genesis-bosh-network" {
 
 resource "google_compute_subnetwork" "genesis-bosh-subnetwork" {
   name          = "genesis-bosh-subnetwork"
-  ip_cidr_range = "${var.subnet_cidr}"
+  ip_cidr_range = "${var.network_prefix}.0${var.subnet_cidr}"
   region        = "${var.region}"
   network       = "${google_compute_network.genesis-bosh-network.self_link}"
   private_ip_google_access = true
@@ -88,7 +94,7 @@ resource "google_compute_firewall" "internal-subnet-ingress" {
   name          = "internal-subnet-ingress"
   network       = "${google_compute_network.genesis-bosh-network.self_link}"
   direction     =  "INGRESS"
-  source_ranges = ["${var.subnet_cidr}"]
+  source_ranges = ["${var.network_prefix}.0${var.subnet_cidr}"]
   allow {
     protocol    = "all"
   }
@@ -129,7 +135,7 @@ resource "google_compute_instance" "bastion-vm" {
   }
 
   network_interface {
-    network_ip  = "10.0.0.2"
+    network_ip  = "${var.network_prefix}.2"
     network     = "${google_compute_network.genesis-bosh-network.self_link}"
     subnetwork  = "${google_compute_subnetwork.genesis-bosh-subnetwork.self_link}"
 
@@ -197,6 +203,7 @@ output "network_range"   { value = "${google_compute_subnetwork.genesis-bosh-sub
 output "default_gateway" { value = "${google_compute_subnetwork.genesis-bosh-subnetwork.gateway_address}" }
 output "avail_zone"      { value = "${google_compute_instance.bastion-vm.zone}" }
 output "dns"             { value = "169.254.169.254" }
+output "network_prefix"  { value = "${var.network_prefix}" }
 
 output "bastion_host_ip" { value = "${google_compute_instance.bastion-vm.network_interface[0].access_config[0].nat_ip}" }
 output "ssh_user"        { value = "${keys(var.ssh_creds_pub)[0]}" }
