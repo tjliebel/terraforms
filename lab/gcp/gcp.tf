@@ -129,9 +129,7 @@ resource "google_compute_instance" "bastion-vm" {
   zone         = "${var.zone}"
 
   boot_disk {
-    initialize_params {
-      image     = "${data.google_compute_image.ubuntu-xenial.self_link}"
-    }
+    source     = "${google_compute_disk.bastion-disk.self_link}"
   }
 
   network_interface {
@@ -144,9 +142,9 @@ resource "google_compute_instance" "bastion-vm" {
     }
   }
 
-  attached_disk {
-    source = "${google_compute_disk.bastion-disk.self_link}"
-  }
+  # attached_disk {
+  #   source = "${google_compute_disk.bastion-disk.self_link}"
+  # }
 
   metadata = {
     ssh-keys = join("", [
