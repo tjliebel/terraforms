@@ -111,6 +111,11 @@ resource "google_compute_firewall" "ssh-ingress" {
   }
 }
 
+resource "google_storage_bucket" "shield-backup-store" {
+  name     = "shield-backup-store"
+  location = "US"
+}
+
 data "google_compute_image" "ubuntu-xenial" {
   family  = "ubuntu-1604-lts"
   project = "ubuntu-os-cloud"
@@ -162,6 +167,7 @@ resource "google_compute_instance" "bastion-vm" {
     inline = [
       "sudo curl -o /usr/local/bin/jumpbox https://raw.githubusercontent.com/starkandwayne/jumpbox/master/bin/jumpbox",
       "sudo chmod 0755 /usr/local/bin/jumpbox",
+      "sudo jumpbox system",
     ]
     connection {
       type = "ssh"
